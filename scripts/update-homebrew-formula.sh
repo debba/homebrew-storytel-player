@@ -79,12 +79,20 @@ curl -sL --fail "$DMG_URL" -o "${TEMP_DIR}/storytel-player.dmg" || {
     echo "Error: Failed to download DMG from $DMG_URL"
     exit 1
 }
-SHA256=$(sha256sum "${TEMP_DIR}/storytel-player.dmg" | cut -d' ' -f1)
+# Use shasum for cross-platform compatibility (works on both macOS and Linux)
+SHA256=$(shasum -a 256 "${TEMP_DIR}/storytel-player.dmg" | cut -d' ' -f1)
 echo "Universal DMG SHA256: ${SHA256}"
 
-# Update the formula using sed
-sed -i "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_PATH"
-sed -i "s/sha256 \"[^\"]*\"/sha256 \"${SHA256}\"/" "$FORMULA_PATH"
+# Update the formula using sed (macOS-compatible)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    sed -i '' "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_PATH"
+    sed -i '' "s/sha256 \"[^\"]*\"/sha256 \"${SHA256}\"/" "$FORMULA_PATH"
+else
+    # Linux
+    sed -i "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_PATH"
+    sed -i "s/sha256 \"[^\"]*\"/sha256 \"${SHA256}\"/" "$FORMULA_PATH"
+fi
 
 echo ""
 echo "✓ Formula updated successfully!"
