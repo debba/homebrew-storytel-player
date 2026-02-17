@@ -18,10 +18,10 @@ cask "storytel-player" do
   app "Storytel Player.app"
   
   postflight do
-  system_command "xattr",
-                  args: [
-                      "-c", "#{appdir}/Storytel Player.app"
-                  ]
+    system_command "xattr",
+                    args: [
+                        "-c", "#{appdir}/Storytel Player.app"
+                    ]
   end
 
   zap trash: [

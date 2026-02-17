@@ -79,11 +79,11 @@ curl -sL --fail "$DMG_URL" -o "${TEMP_DIR}/storytel-player.dmg" || {
     echo "Error: Failed to download DMG from $DMG_URL"
     exit 1
 }
-# Use shasum for cross-platform compatibility (works on both macOS and Linux)
+# Calculate SHA256 using shasum (available on both macOS and Linux)
 SHA256=$(shasum -a 256 "${TEMP_DIR}/storytel-player.dmg" | cut -d' ' -f1)
 echo "Universal DMG SHA256: ${SHA256}"
 
-# Update the formula using sed (macOS-compatible)
+# Update the formula using platform-specific sed syntax
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
     sed -i '' "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_PATH"
