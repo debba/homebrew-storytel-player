@@ -1,0 +1,56 @@
+name: Update Homebrew Formula
+
+on:
+  schedule:
+    # Run every day at 6:00 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    # Manual trigger with optional version input
+    inputs:
+      version:
+        description: 'Version to update to (leave empty for auto-detect)'
+        required: false
+        type: string
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Setup Git
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+    
+    - name: Run update script
+      env:
+        VERSION: ${{ github.event.inputs.version }}
+      run: |
+        chmod +x scripts/update-homebrew-formula.sh
+        ./scripts/update-homebrew-formula.sh
+    
+    - name: Check for changes
+      id: check_changes
+      run: |
+        if git diff --quiet; then
+          echo "No changes to commit"
+          echo "changed=false" >> $GITHUB_OUTPUT
+        else
+          echo "Changes detected"
+          echo "changed=true" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Commit and push changes
+      if: steps.check_changes.outputs.changed == 'true'
+      run: |
+        git add Casks/storytel-player.rb
+        VERSION=$(grep -o 'version "[^"]*"' Casks/storytel-player.rb | cut -d'"' -f2)
+        git commit -m "chore: update storytel-player to v${VERSION}"
+        git push
