@@ -1,6 +1,6 @@
 cask "storytel-player" do
-  version "1.2.12"
-  sha256 "643ff368d1dcb9dee2e49c5a51bb1275162ffa1698bde9435e193b4ee47e64ee"
+  version "1.2.13"
+  sha256 "9785fa2c30ec86afa729c1d2d4ede4cb9e7b7538b120d0c9a8e3e1277f13a299"
 
   url "https://github.com/debba/storytel-player/releases/download/v#{version}/Storytel-Player-#{version}.dmg"
   name "Storytel Player"
