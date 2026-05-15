@@ -16,23 +16,23 @@ VERSION=${1:-$VERSION}
 # If version is not provided, fetch the latest release from GitHub
 if [ -z "$VERSION" ]; then
     echo "Auto-detecting latest version from GitHub releases..."
-    
+
     # Use GitHub API to get the latest release
     LATEST_RELEASE=$(curl -sL \
         -H "Accept: application/vnd.github+json" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
         "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest")
-    
+
     # Extract version from tag_name (remove 'v' prefix if present)
     VERSION=$(echo "$LATEST_RELEASE" | grep -o '"tag_name": "[^"]*"' | cut -d'"' -f4)
     VERSION="${VERSION#v}"
-    
+
     if [ -z "$VERSION" ]; then
         echo "Error: Could not detect latest version from GitHub API"
         echo "API Response: $LATEST_RELEASE"
         exit 1
     fi
-    
+
     echo "Latest version detected: v${VERSION}"
 fi
 
@@ -66,40 +66,50 @@ fi
 
 BASE_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/v${VERSION}"
 
-echo "Downloading and calculating SHA256..."
+echo "Downloading and calculating SHA256 for each architecture..."
 
 # Create temp directory for downloads
 TEMP_DIR=$(mktemp -d)
 trap "rm -rf $TEMP_DIR" EXIT
 
-# Download universal DMG
-echo "Downloading Universal DMG..."
-DMG_URL="${BASE_URL}/Storytel-Player-${VERSION}.dmg"
-curl -sL --fail "$DMG_URL" -o "${TEMP_DIR}/storytel-player.dmg" || {
-    echo "Error: Failed to download DMG from $DMG_URL"
+# Download arm64 (Apple Silicon) DMG
+ARM_URL="${BASE_URL}/Storytel-Player-${VERSION}-mac-arm64.dmg"
+echo "Downloading arm64 DMG..."
+curl -sL --fail "$ARM_URL" -o "${TEMP_DIR}/arm64.dmg" || {
+    echo "Error: Failed to download arm64 DMG from $ARM_URL"
     exit 1
 }
-# Calculate SHA256 using shasum (available on both macOS and Linux)
-SHA256=$(shasum -a 256 "${TEMP_DIR}/storytel-player.dmg" | cut -d' ' -f1)
-echo "Universal DMG SHA256: ${SHA256}"
+SHA256_ARM=$(shasum -a 256 "${TEMP_DIR}/arm64.dmg" | cut -d' ' -f1)
+echo "arm64 SHA256: ${SHA256_ARM}"
+
+# Download x64 (Intel) DMG
+X64_URL="${BASE_URL}/Storytel-Player-${VERSION}-mac-x64.dmg"
+echo "Downloading x64 DMG..."
+curl -sL --fail "$X64_URL" -o "${TEMP_DIR}/x64.dmg" || {
+    echo "Error: Failed to download x64 DMG from $X64_URL"
+    exit 1
+}
+SHA256_X64=$(shasum -a 256 "${TEMP_DIR}/x64.dmg" | cut -d' ' -f1)
+echo "x64 SHA256: ${SHA256_X64}"
 
 # Update the formula using platform-specific sed syntax
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
-    sed -i '' "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_PATH"
-    sed -i '' "s/sha256 \"[^\"]*\"/sha256 \"${SHA256}\"/" "$FORMULA_PATH"
+    SED_INPLACE=(sed -i '')
 else
-    # Linux
-    sed -i "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_PATH"
-    sed -i "s/sha256 \"[^\"]*\"/sha256 \"${SHA256}\"/" "$FORMULA_PATH"
+    SED_INPLACE=(sed -i)
 fi
+
+"${SED_INPLACE[@]}" "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_PATH"
+"${SED_INPLACE[@]}" "s/sha256 arm:[[:space:]]*\"[^\"]*\"/sha256 arm:   \"${SHA256_ARM}\"/" "$FORMULA_PATH"
+"${SED_INPLACE[@]}" "s/intel: \"[^\"]*\"/intel: \"${SHA256_X64}\"/" "$FORMULA_PATH"
 
 echo ""
 echo "✓ Formula updated successfully!"
 echo ""
 echo "Changes made to ${FORMULA_FILE}:"
 echo "  Version: ${CURRENT_VERSION} → ${VERSION}"
-echo "  SHA256: ${SHA256}"
+echo "  arm64 SHA256: ${SHA256_ARM}"
+echo "  x64   SHA256: ${SHA256_X64}"
 echo ""
 echo "Verify locally with:"
 echo "  brew install --cask ${FORMULA_PATH}"
