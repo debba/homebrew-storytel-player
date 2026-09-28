@@ -1,9 +1,9 @@
 cask "storytel-player" do
-  arch arm: "arm64", intel: "722a4ab4749e6cf155450489d8483e4a34f095c3dceb6c93ca6c775496ec9ec6"
+  arch arm: "arm64", intel: "3c4ba0ee13be8f8eb48e7ea47709f00a0668c32a3affe552f31967bf7548dd46"
 
-  version "1.4.0"
-  sha256 arm:   "987cea2fcac10f026316ba589faa3460a464db43818c3bd4ee96dc848548f36d",
-         intel: "722a4ab4749e6cf155450489d8483e4a34f095c3dceb6c93ca6c775496ec9ec6"
+  version "1.4.1"
+  sha256 arm:   "c9e78dbe42281156e9eb7aec21e3f43c5fc2f66a999d5f0fa129b29c6746246b",
+         intel: "3c4ba0ee13be8f8eb48e7ea47709f00a0668c32a3affe552f31967bf7548dd46"
 
   url "https://github.com/debba/storytel-player/releases/download/v#{version}/Storytel-Player-#{version}-mac-#{arch}.dmg"
   name "Storytel Player"
