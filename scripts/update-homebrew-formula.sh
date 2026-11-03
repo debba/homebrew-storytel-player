@@ -101,7 +101,8 @@ fi
 
 "${SED_INPLACE[@]}" "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_PATH"
 "${SED_INPLACE[@]}" "s/sha256 arm:[[:space:]]*\"[^\"]*\"/sha256 arm:   \"${SHA256_ARM}\"/" "$FORMULA_PATH"
-"${SED_INPLACE[@]}" "s/intel: \"[^\"]*\"/intel: \"${SHA256_X64}\"/" "$FORMULA_PATH"
+# Only update the checksum continuation line, never the `arch` declaration.
+"${SED_INPLACE[@]}" "s/^\([[:space:]]*\)intel: \"[^\"]*\"/\1intel: \"${SHA256_X64}\"/" "$FORMULA_PATH"
 
 echo ""
 echo "✓ Formula updated successfully!"

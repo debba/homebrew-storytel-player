@@ -1,5 +1,5 @@
 cask "storytel-player" do
-  arch arm: "arm64", intel: "3c4ba0ee13be8f8eb48e7ea47709f00a0668c32a3affe552f31967bf7548dd46"
+  arch arm: "arm64", intel: "x64"
 
   version "1.4.1"
   sha256 arm:   "c9e78dbe42281156e9eb7aec21e3f43c5fc2f66a999d5f0fa129b29c6746246b",
@@ -16,7 +16,7 @@ cask "storytel-player" do
   end
 
   auto_updates true
-  depends_on macos: ">= :monterey"
+  depends_on macos: :monterey
 
   app "Storytel Player.app"
 
